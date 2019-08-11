@@ -1,23 +1,28 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class RoomManager {
-    // 방 정보에는 뭐가있을까 ?
-    // 방 번호, 방 이름, 방장, 비번, 정원, 현인원, 게스트정보,
-    String user;
-    String roomName;
-    String passWord;
-    ArrayList<String> guestList;
 
-    // 공개방
-    public RoomManager(String user, String roomName) {
-        this.user = user;
-        this.roomName = roomName;
+    static List<Room> roomList;
+
+    public RoomManager() {
+        roomList = new ArrayList<Room>();
     }
 
-    // 비공개방
-    public RoomManager(String user, String roomName, String passWord) {
-        this.user = user;
-        this.roomName = roomName;
-        this.passWord = passWord;
+    // 방만들기
+    public Room CreateRoom(User user) {
+        Room room = new Room(user);
+        roomList.add(room);
+        System.out.println("채팅방 개설 완료");
+        return room;
+    }
+    // 전달받은 방을 삭제하기
+    public static void DeleteRoom(Room room) {
+        roomList.remove(room);
+        System.out.println("채팅방 삭제 완료");
+    }
+    // 개설된 방의 갯수
+    public static int RoomCount() {
+        return roomList.size();
     }
 }
