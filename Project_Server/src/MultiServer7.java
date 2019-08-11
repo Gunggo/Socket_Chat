@@ -32,7 +32,7 @@ public class MultiServer7 {
     ServerSocket serverSocket = null;
     Socket socket = null;
     Map<String, PrintWriter> clientMap;
-    Map<String, ArrayList<RoomManager>> roomInfo;
+//    Map<String, ArrayList<RoomManager>> roomInfo;
 
 
     // 생성자
@@ -41,7 +41,7 @@ public class MultiServer7 {
         clientMap = new HashMap<String, PrintWriter>();
         // 해쉬맵 동기화 설정.
         Collections.synchronizedMap(clientMap);
-        Collections.synchronizedMap(roomInfo);
+//        Collections.synchronizedMap(roomInfo);
 
     }
 
@@ -160,9 +160,8 @@ public class MultiServer7 {
 //            String s = "";
             String name = ""; //클라이언트로부터 받은이름을 저장할 변수.
             try {
-                name = signMenu(); // 클라이언트에서 처음으로 보내는 메시지는
+                name = signMenu();
                 name = URLDecoder.decode(name, "UTF-8");
-                // 클라이언트가 사용할 이름이다.
                 // 현재 객체가 가지고 있는 소켓을 제외하고 다른 소켓(클라이언트)들에게
                 sendAllMsg("", name + "님이 입장하셨습니다.");
                 // 접속을 알림.
@@ -173,11 +172,12 @@ public class MultiServer7 {
                 Set<String> keys = clientMap.keySet();
                 keys.forEach(key -> System.out.println(key));
 
+                inMenu();
+
                 String s = "";
                 while (in != null) {
                     s = in.readLine();
                     s = URLDecoder.decode(s, "UTF-8");
-
 
 
                     // 유저들이 하는말
@@ -187,22 +187,9 @@ public class MultiServer7 {
 //                        break;
 
                     // 명령어 리스트
-
-                    // 유저목록 명령어
-                    if (s.equals("/menu"))
+                    if (s.charAt(0) == '/') {
                         order(name, s);
-                    // 귓속말 명령어
-                    if (s.contains("/w")) {
-                        int begin = s.indexOf(" ") + 1;
-                        int end = s.indexOf(" ", begin);
-                        if (end != -1) {
-                            String id = s.substring(begin, end);
-                            String msg = s.substring(end + 1);
-                            whisper(name, id, msg);
-                            System.out.println("귓속말 끝");
-                        }
-                    }
-                    else
+                    } else
                         sendAllMsg(name, s);
 
                 }
@@ -231,29 +218,35 @@ public class MultiServer7 {
 
         public void order(String user, String s) {
 
-            // 유저목록 명령어
-            out.println();
+            String command = s.substring(s.indexOf("/") + 1, s.indexOf(" "));
 
-
-            if (("/").equals(s)) {
-                out.println("===========명령어 목록===========");
-                out.println("/list : 현재 접속중인 유저 목록을 보여줍니다.");
-                out.println("/w 아이디 할말 : 접속중인 유저에게 귓속말을 보냅니다");
-                out.println("/w 아이디 할말 : 접속중인 유저에게 귓속말을 보냅니다");
-
+            // 명령어 리스트
+            if ("help".equals(command)) {
+                out.println("======================명령어 목록======================");
+                out.println("              /list : 접속중인 유저 목록");
+                out.println("              /to 아이디 할말 : 고정귓말");
+                out.println("              /w 아이디 할말 : 귓속말");
+                out.println("              /exit : 메뉴로 돌아가기");
+                out.println("              /quit : 프로그램 종료");
             }
-
-            if (s.equals("/list"))
+            // 명령어 입력을 안했을때
+            if (s.length() == 1) {
+                out.println("명령어를 입력하세요");
+                out.println("명령어 목록 : /help");
+            }
+            // 접속자 리스트
+            if ("list".equals(command)) {
                 list(out);
-            // 귓속말 명령어
-            if (s.contains("/w")) {
+            }
+            // 귓속말
+            System.out.println("/w 아이디 할말");
+            if ("w".equals(command)) {
                 int begin = s.indexOf(" ") + 1;
                 int end = s.indexOf(" ", begin);
                 if (end != -1) {
                     String id = s.substring(begin, end);
                     String msg = s.substring(end + 1);
-                    whisper(name, id, msg);
-                    System.out.println("귓속말 끝");
+                    whisper(user, id, msg);
                 }
             }
 
@@ -326,7 +319,8 @@ public class MultiServer7 {
                     System.out.println("로그인에러");
                     break;
                 }
-                System.out.println("로그인 완료");
+                out.println("로그인 완료");
+                break;
             }
             return id;
         }
@@ -353,6 +347,38 @@ public class MultiServer7 {
                 ex.printStackTrace();
             }
             return name;
+        }
+
+        public void inMenu() {
+
+            try {
+                while (true) {
+                    out.println("\t<Menu>\n1.대기방 참여\n2.채팅방 목록보기");
+                    out.println("3.채팅방 개설\n4.채팅방 참여");
+                    String inSelect = in.readLine();
+                    switch (inSelect) {
+                        case "1":
+                            out.println("대기방으로 입장합니다.");
+                            return;
+                        case "2":
+
+                            break;
+                        case "3":
+
+                            break;
+                        case "4":
+
+                            break;
+                        default:
+                            out.println("잘못된 명령입니다. 다시 입력하세요.");
+                            continue;
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("인메뉴 오류");
+            }
         }
 
 
