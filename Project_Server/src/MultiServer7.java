@@ -32,6 +32,7 @@ public class MultiServer7 {
     ServerSocket serverSocket = null;
     Socket socket = null;
     Map<String, PrintWriter> clientMap;
+    RoomManager manager = new RoomManager();
 //    Map<String, ArrayList<RoomManager>> roomInfo;
 
 
@@ -59,6 +60,7 @@ public class MultiServer7 {
                 Thread msr = new MultiServerT(socket); // 쓰렛드 생성.
                 msr.start(); // 쓰레드 시동.
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -105,10 +107,31 @@ public class MultiServer7 {
         }
     }
 
+    public void sendGroupMsg(User user, Room room, String msg) {
+        try {
+            Set<String> keys = clientMap.keySet();
+            for (String key : keys) {
+                if (key.equals(user.getName())) {
+                    PrintWriter out = (PrintWriter) clientMap.get(key);
+                    if (user.getRoom() == room) {
+                        out.println(msg);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("그룹메시지 실패");
+        }
+    }
+
 
     public void whisper(String to, String from, String msg) {
         PrintWriter toOut = (PrintWriter) clientMap.get(to);
         Iterator<String> it = clientMap.keySet().iterator();
+        if (to.equals(from)) {
+            toOut.println("스스로에게 귓속말을 보낼 수 없습니다.\n");
+            return;
+        }
 
         while (it.hasNext()) {
             try {
@@ -122,7 +145,7 @@ public class MultiServer7 {
                 System.out.println("귓속말 에러:" + e);
             }
         }
-        toOut.println("존재하지 않는 사용자입니다.");
+        toOut.println("접속중인 사용자가 아닙니다.");
     }
 
     public static void main(String[] args) {
@@ -165,15 +188,16 @@ public class MultiServer7 {
                 // 현재 객체가 가지고 있는 소켓을 제외하고 다른 소켓(클라이언트)들에게
                 sendAllMsg("", name + "님이 입장하셨습니다.");
                 // 접속을 알림.
+
                 clientMap.put(name, out); // 해쉬멥에 키를 name으로 출력스트림 객체를 저장.
+                User user = new User(name);
                 System.out.println("현재 접속자 수는 " + clientMap.size() + "명 입니다.");
 
-//                맵에 잘 put됬는지 key값 확인용
+//              맵에 잘 put됬는지 key값 확인용
                 Set<String> keys = clientMap.keySet();
                 keys.forEach(key -> System.out.println(key));
 
-                inMenu();
-
+                inMenu(user);
                 String s = "";
                 while (in != null) {
                     s = in.readLine();
@@ -188,15 +212,16 @@ public class MultiServer7 {
 
                     // 명령어 리스트
                     if (s.charAt(0) == '/') {
-                        order(name, s);
+                        System.out.println("명령어 리스트로 들어감");
+                        order(name, s, user);
                     } else
                         sendAllMsg(name, s);
-
                 }
 
 //                System.out.println("Bye....");
             } catch (Exception e) {
                 System.out.println("예외: 쓰레드" + e);
+                e.printStackTrace();
             } finally {
                 // 예외가 발생할 때 퇴장. 해쉬맵에서 해당 데이터 제거.
                 // 보통 종료하거나 나가면 java.net.SocketException: 예외발생
@@ -216,39 +241,51 @@ public class MultiServer7 {
             }
         }
 
-        public void order(String user, String s) {
+        public void order(String name, String s, User user) {
+            String command = "";
 
-            String command = s.substring(s.indexOf("/") + 1, s.indexOf(" "));
-
-            // 명령어 리스트
-            if ("help".equals(command)) {
-                out.println("======================명령어 목록======================");
-                out.println("              /list : 접속중인 유저 목록");
-                out.println("              /to 아이디 할말 : 고정귓말");
-                out.println("              /w 아이디 할말 : 귓속말");
-                out.println("              /exit : 메뉴로 돌아가기");
-                out.println("              /quit : 프로그램 종료");
-            }
-            // 명령어 입력을 안했을때
+            // 명령어 미입력
             if (s.length() == 1) {
-                out.println("명령어를 입력하세요");
-                out.println("명령어 목록 : /help");
+                out.println("\n명령어를 입력하세요");
+                out.println("명령어 목록 : /help\n");
+                return;
             }
-            // 접속자 리스트
-            if ("list".equals(command)) {
-                list(out);
+            // 명령어만 짤라내기
+            if (s.contains(" ")) {
+                command = s.substring(s.indexOf("/") + 1, s.indexOf(" "));
+            } else {
+                command = s.substring(s.indexOf("/") + 1);
             }
-            // 귓속말
-            System.out.println("/w 아이디 할말");
-            if ("w".equals(command)) {
-                int begin = s.indexOf(" ") + 1;
-                int end = s.indexOf(" ", begin);
-                if (end != -1) {
-                    String id = s.substring(begin, end);
-                    String msg = s.substring(end + 1);
-                    whisper(user, id, msg);
-                }
+
+            switch (command) {
+                // 명령어 리스트
+                case "help":
+                    out.println("======================명령어 목록======================");
+                    out.println("/list : 접속중인 유저 목록");
+                    out.println("/to 아이디 할말 : 고정귓말");
+                    out.println("/w 아이디 할말 : 귓속말");
+                    out.println("/menu : 메뉴로 돌아가기");
+                    out.println("/quit : 프로그램 종료");
+                    break;
+                // 접속자 리스트
+                case "list":
+                    list(out);
+                    break;
+                case "w":
+                    // 귓속말
+                    int begin = s.indexOf(" ") + 1;
+                    int end = s.indexOf(" ", begin);
+                    if (end != -1) {
+                        String id = s.substring(begin, end);
+                        String msg = s.substring(end + 1);
+                        whisper(name, id, msg);
+                    }
+                    break;
+                // 메뉴로 돌아가기
+                case "menu":
+                    inMenu(user);
             }
+            // 메뉴로 돌아가기
 
         }
 
@@ -257,35 +294,38 @@ public class MultiServer7 {
 
             // 회원가입
             // 공백검사는 나중에 ..
-            try {
-                out.println("===========회원가입===========");
-                out.println("ID : ");
-                String id = in.readLine();
-                out.println("PassWord : ");
-                String pass = in.readLine();
-                String sql = "insert into IdList values(?, ?)";
-                pstmt = con.prepareStatement(sql);
-                pstmt.setString(1, id);
-                pstmt.setString(2, pass);
-                pstmt.executeUpdate();
+            while (true) {
+                try {
+                    out.println("===========회원가입===========");
+                    out.println("ID : ");
+                    String id = in.readLine();
+                    out.println("PassWord : ");
+                    String pass = in.readLine();
+                    String sql = "insert into IdList values(?, ?)";
+                    pstmt = con.prepareStatement(sql);
+                    pstmt.setString(1, id);
+                    pstmt.setString(2, pass);
+                    pstmt.executeUpdate();
 
-                out.println("가입완료");
-                signMenu();
+                    out.println("가입완료");
+                    break;
 
-            } catch (SQLIntegrityConstraintViolationException sqle) {
-                if (sqle.getErrorCode() == 1400) {
-                    out.println("비밀번호를 입력하세요\n");
-                    add();
-                } else if (sqle.getErrorCode() == 1) {
-                    out.println("중복된 아이디 입니다.\n");
-                    add();
+                } catch (SQLIntegrityConstraintViolationException sqle) {
+                    if (sqle.getErrorCode() == 1400) {
+                        out.println("비밀번호를 입력하세요\n");
+                        continue;
+                    } else if (sqle.getErrorCode() == 1) {
+                        out.println("중복된 아이디 입니다.\n");
+                        continue;
+                    }
+                } catch (SQLException e) {
+                    System.out.println("접속오류");
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (SQLException e) {
-                System.out.println("접속오류");
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+            signMenu();
         }
 
         public String logIn() {
@@ -293,11 +333,11 @@ public class MultiServer7 {
             while (true) {
                 try {
                     out.println("===========로그인===========");
-                    out.println("회원가입 = add");
+                    out.println("메뉴로 돌아가기 = menu");
                     out.println("ID : ");
                     id = in.readLine();
-                    if (id.equals("add") || id.equals("ADD")) {
-                        add();
+                    if (id.equals("menu")) {
+                        return signMenu();
                     }
                     out.println("PassWord : ");
                     String pass = in.readLine();
@@ -349,28 +389,67 @@ public class MultiServer7 {
             return name;
         }
 
-        public void inMenu() {
+        public void inMenu(User user) {
 
+            Room room = new Room(user);
             try {
                 while (true) {
-                    out.println("\t<Menu>\n1.대기방 참여\n2.채팅방 목록보기");
+                    out.println("\n\t<Menu>\n1.대기방 참여\n2.채팅방 목록보기\n");
                     out.println("3.채팅방 개설\n4.채팅방 참여");
                     String inSelect = in.readLine();
                     switch (inSelect) {
                         case "1":
-                            out.println("대기방으로 입장합니다.");
+                            out.println("대기방으로 입장합니다.\n");
                             return;
                         case "2":
-
+                            if (RoomManager.roomCount() == 0) {
+                                out.println("현재 개설된 방이 없습니다.");
+                            } else {
+                                manager.roomNameList(out);
+                            }
                             break;
                         case "3":
-
+                            out.println("방 이름을 입력하세요");
+                            String roomName = in.readLine();
+                            out.println("최대 정원을 입력하세요.");
+                            int maxNumber = in.read();
+                            room.setMaxNumber(maxNumber);
+                            in.skip(2);
+                            System.out.println(maxNumber);
+                            out.println("비밀번호를 설정하시겠습니까?<Y / N>");
+                            String passWordSelect = in.readLine();
+                            switch (passWordSelect) {
+                                case "Y":
+                                case "y":
+                                    out.println("비밀번호를 입력하세요");
+                                    String passWord = in.readLine();
+                                    manager.createRoom(user, roomName, passWord, out, maxNumber);
+                                    out.println(roomName + "에 입장합니다.");
+                                    roomMenu(user, room);
+                                    break;
+                                case "N":
+                                case "n":
+                                    manager.createRoom(user, roomName, out, maxNumber);
+                                    out.println(roomName + "에 입장합니다.");
+                                    roomMenu(user, room);
+                                    break;
+                                default:
+                                    out.println("잘못 입력하셨습니다.");
+                            }
                             break;
                         case "4":
+                            boolean check = room.joinRoom(user);
+                            if (check) {
+                                out.println(room.getRoomName() + "에 입장하셨습니다.");
+                                roomMenu(user, room);
+                            } else {
+                                out.println("입장실패");
+                                continue;
+                            }
 
                             break;
                         default:
-                            out.println("잘못된 명령입니다. 다시 입력하세요.");
+                            out.println("잘못된 명령입니다. 다시 입력하세요.\n");
                             continue;
                     }
                 }
@@ -381,6 +460,26 @@ public class MultiServer7 {
             }
         }
 
+        public void roomMenu(User user, Room room) {
+            try {
+                String s = "";
+                while (in != null) {
+                    s = in.readLine();
+                    s = URLDecoder.decode(s, "UTF-8");
+
+                    // 명령어 리스트
+                    if (s.charAt(0) == '/') {
+                        System.out.println("명령어 리스트로 들어감");
+                        order(user.getName(), s, user);
+                    }
+                    else
+                        sendGroupMsg(user, room, s);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("roomMenu 오류");
+            }
+        }
 
     }
 

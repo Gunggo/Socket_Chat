@@ -1,3 +1,4 @@
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -5,6 +6,9 @@ public class Room {
     private List<User> userList;
     private User roomOwner;
     private String roomName;
+    private String passWord = "";
+    private int roomNumber;
+    private int maxNumber;
 
     public Room(User user) {
         userList = new ArrayList<User>();
@@ -12,15 +16,21 @@ public class Room {
         this.roomOwner = user;
     }
 
-    public void JoinRoom(User user) {
-        userList.add(user);
+    public boolean joinRoom(User user) {
+        if (passWord.equals("")) {
+            if (userList.size() <= maxNumber) {
+                userList.add(user);
+                return true;
+            }
+        }
+        return false;
     }
 
-    public void ExitRoom(User user) {
+    public void exitRoom(User user) {
         userList.remove(user);
         // 아무도 없으면 방 제거
         if (userList.size() < 1) {
-            RoomManager.DeleteRoom(this);
+            RoomManager.deleteRoom(this);
             return;
         }
         // 마지막 남은새끼가 방장
@@ -31,30 +41,56 @@ public class Room {
     }
 
     // 방장 겟터
-    public User GetRoomOwner() {
+    public User getRoomOwner() {
         return roomOwner;
     }
+
     // 방장 셋터
-    public void SetRoomOwner(User user) {
+    public void setRoomOwner(User user) {
         this.roomOwner = user;
     }
+
     // 방제 겟터
-    public String GetRoomName() {
+    public String getRoomName() {
         return roomName;
     }
+
     // 방제 셋터
-    public void SetRoomName(String name) {
+    public void setRoomName(String name) {
         this.roomName = name;
     }
+
     // 리스트 겟터
-    public int GetUserList() {
+    public int getUserList() {
         return userList.size();
     }
+
     // 리스트 셋터
     public void setUserList(List<User> userList) {
         this.userList = userList;
     }
 
+    public String getPassWord() {
+        return passWord;
+    }
 
+    public void setPassWord(String passWord) {
+        this.passWord = passWord;
+    }
 
+    public int getRoomNumber() {
+        return roomNumber;
+    }
+
+    public void setRoomNumber(int roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public int getMaxNumber() {
+        return maxNumber;
+    }
+
+    public void setMaxNumber(int maxNumber) {
+        this.maxNumber = maxNumber;
+    }
 }
