@@ -111,7 +111,8 @@ public class MultiServer7 {
     public void sendGroupMsg(User user, Room room, String msg) {
         try {
             for (User uName : room.getUserList()) {
-                PrintWriter out = (PrintWriter) clientMap.get(user.getName());
+                System.out.println(uName.getName());
+                PrintWriter out = (PrintWriter) clientMap.get(uName.getName());
                 out.println("[" + user.getName() + "] " + msg);
             }
         } catch (Exception e) {
@@ -183,9 +184,9 @@ public class MultiServer7 {
                 name = in.readLine();
                 // 현재 객체가 가지고 있는 소켓을 제외하고 다른 소켓(클라이언트)들에게
                 // 접속을 알림.
+                name = URLDecoder.decode(name, "UTF-8");
                 User user = new User(name);
                 user.setName(name);
-                name = URLDecoder.decode(name, "UTF-8");
                 clientMap.put(name, out); // 해쉬멥에 키를 name으로 출력스트림 객체를 저장.
                 sendAllMsg("", user.getName() + "님이 입장하셨습니다.");
                 System.out.println("현재 접속자 수는 " + clientMap.size() + "명 입니다.");
@@ -193,8 +194,9 @@ public class MultiServer7 {
                 if (manager.roomCount() == 0) {
                     room = new Room(0);
                     manager.createRoom();
+                } else {
+                    room.joinUser(user);
                 }
-                user.joinRoom(room);
                 out.println("대기방에 입장하셨습니다.");
 
                 String s = "";
@@ -212,7 +214,7 @@ public class MultiServer7 {
                     // 명령어 리스트
                     if (s.charAt(0) == '/') {
                         System.out.println("명령어 리스트로 들어감");
-                        order(name, s, user);
+                        order(user.getName(), s, user);
                     } else
                         sendGroupMsg(user, room, s);
                 }
@@ -411,12 +413,14 @@ public class MultiServer7 {
                                 case "y":
                                     out.println("비밀번호를 입력하세요");
                                     String passWord = in.readLine();
+                                    room = new Room(user);
                                     manager.createRoom(user, roomName, passWord, out, maxNumber);
                                     out.println(roomName + "에 입장합니다.");
                                     roomMenu(user, room);
                                     break;
                                 case "N":
                                 case "n":
+                                    room = new Room(user);
                                     manager.createRoom(user, roomName, out, maxNumber);
                                     out.println(roomName + "에 입장합니다.");
                                     roomMenu(user, room);
@@ -426,6 +430,8 @@ public class MultiServer7 {
                             }
                             break;
                         case "4":
+                            manager.roomNameList(out);
+                            out.println("방 번호를 선택하세요.");
                             break;
                         default:
                             out.println("잘못된 명령입니다. 다시 입력하세요.\n");

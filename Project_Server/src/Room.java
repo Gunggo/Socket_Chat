@@ -21,7 +21,7 @@ public class Room {
     }
 
     public Room(User user) {
-        userList = new ArrayList<User>();
+        userList = new ArrayList<>();
         user.joinRoom(this);
         userList.add(user);
         this.roomOwner = user;
@@ -41,7 +41,7 @@ public class Room {
             RoomManager.deleteRoom(this);
             return;
         }
-        // 마지막 남은새끼가 방장
+        // 마지막 남은 사람이 방장
         if (userList.size() > 2) {
             this.roomOwner = userList.get(0);
             return;
@@ -88,6 +88,16 @@ public class Room {
     public void getUserName(PrintWriter out) {
         for (User userName : userList) {
             out.println(userName.getName());
+        }
+    }
+
+    public User getUser(User user) {
+        int uNum = userList.indexOf(user);
+
+        if (uNum > 0) {
+            return userList.get(uNum);
+        } else {
+            return null;
         }
     }
 
