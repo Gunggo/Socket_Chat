@@ -20,7 +20,6 @@ public class User {
 
 
     public void joinRoom(Room room) {
-        room.joinUser(this);
         this.rNumb = room.getRoomNumber();
         this.room = room;
     }

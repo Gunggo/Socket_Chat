@@ -5,7 +5,7 @@ import java.util.List;
 public class RoomManager {
 
     private static List<Room> roomList;
-    private static int rNum = 1;
+    private static int rNum = 0;
 
     static {
         roomList = new ArrayList<>();

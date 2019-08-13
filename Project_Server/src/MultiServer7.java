@@ -195,8 +195,8 @@ public class MultiServer7 {
                     room = new Room(0);
                     manager.createRoom();
                 } else {
-                    room.joinUser(user);
                 }
+                room.joinUser(user);
                 out.println("대기방에 입장하셨습니다.");
 
                 String s = "";
@@ -213,7 +213,6 @@ public class MultiServer7 {
 
                     // 명령어 리스트
                     if (s.charAt(0) == '/') {
-                        System.out.println("명령어 리스트로 들어감");
                         order(user.getName(), s, user);
                     } else
                         sendGroupMsg(user, room, s);
@@ -380,11 +379,10 @@ public class MultiServer7 {
         }
 
         public void inMenu(User user) {
-
-            Room room = new Room(user);
             try {
                 while (true) {
-                    out.println("\n\t<Menu>\n1.대기방 참여\n2.채팅방 목록보기");
+                    out.println("=============================================");
+                    out.println("\t<Menu>\n1.대기방 참여\n2.채팅방 목록보기");
                     out.println("3.채팅방 개설\n4.채팅방 참여");
                     String inSelect = in.readLine();
                     switch (inSelect) {

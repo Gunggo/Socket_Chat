@@ -28,7 +28,6 @@ public class Room {
     }
 
     public void joinUser(User user) {
-        user.joinRoom(this);
         userList.add(user);
     }
 
