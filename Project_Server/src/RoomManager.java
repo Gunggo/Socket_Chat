@@ -4,11 +4,25 @@ import java.util.List;
 
 public class RoomManager {
 
-    static List<Room> roomList;
+    private static List<Room> roomList;
     private int rNum = 1;
 
+    static{
+        roomList = new ArrayList<>();
+    }
+
     public RoomManager() {
-        roomList = new ArrayList<Room>();
+    }
+
+    // 최초 공개방
+    public Room createRoom() {
+        Room room = new Room(0);
+        room.setRoomName("WatingRoom");
+        room.setRoomNumber(rNum);
+        room.setMaxNumber(100);
+        rNum++;
+        roomList.add(room);
+        return room;
     }
 
     // 공개방만들기 (방 만들때 비번을 안주면)
@@ -20,10 +34,8 @@ public class RoomManager {
         room.setMaxNumber(maxNumber);
         rNum++;
         roomList.add(room);
-        out.println("공개방 개설 완료");
         return room;
     }
-
     // 비공개방만들기 (방 만들때 비번 주면)
     public Room createRoom(User user, String roomName, String passWord, PrintWriter out, int maxNumber) {
         Room room = new Room(user);
@@ -33,7 +45,6 @@ public class RoomManager {
         room.setMaxNumber(maxNumber);
         rNum++;
         roomList.add(room);
-        out.println("비공개방 개설 완료");
         return room;
     }
 
@@ -52,7 +63,7 @@ public class RoomManager {
 
     public void roomNameList(PrintWriter out) {
         for (Room rName : roomList) {
-            out.print(rName.getRoomNumber()+ ". " + rName.getRoomName() + "\n");
+            out.println(rName.getRoomNumber()+ ". " + rName.getRoomName());
         }
     }
 
@@ -62,5 +73,13 @@ public class RoomManager {
 
     public void setrNum(int rNum) {
         this.rNum = rNum;
+    }
+
+    public List<Room> getRoomList() {
+        return roomList;
+    }
+
+    public void setRoomList(List<Room> roomList) {
+        RoomManager.roomList = roomList;
     }
 }

@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,25 +11,31 @@ public class Room {
     private String passWord = "";
     private int roomNumber;
     private int maxNumber;
+    Socket socket;
+    BufferedReader in;
+    PrintWriter out;
+    // 깡통
+    public Room(int roomNumber) {
+        this.roomNumber = roomNumber;
+        userList = new ArrayList<>();
+    }
 
     public Room(User user) {
         userList = new ArrayList<User>();
+        user.joinRoom(this);
         userList.add(user);
         this.roomOwner = user;
     }
 
-    public boolean joinRoom(User user) {
-        if (passWord.equals("")) {
-            if (userList.size() <= maxNumber) {
-                userList.add(user);
-                return true;
-            }
-        }
-        return false;
+    public void joinUser(User user) {
+        user.joinRoom(this);
+        userList.add(user);
     }
 
     public void exitRoom(User user) {
+        user.exitRoom(this);
         userList.remove(user);
+
         // 아무도 없으면 방 제거
         if (userList.size() < 1) {
             RoomManager.deleteRoom(this);
@@ -38,6 +46,14 @@ public class Room {
             this.roomOwner = userList.get(0);
             return;
         }
+    }
+
+    public void close() {
+        for (User user : userList) {
+            user.exitRoom(this);
+        }
+        this.userList.clear();
+        this.userList = null;
     }
 
     // 방장 겟터
@@ -61,8 +77,18 @@ public class Room {
     }
 
     // 리스트 겟터
-    public int getUserList() {
+    public int getUserListSize() {
         return userList.size();
+    }
+
+    public List<User> getUserList() {
+        return userList;
+    }
+
+    public void getUserName(PrintWriter out) {
+        for (User userName : userList) {
+            out.println(userName.getName());
+        }
     }
 
     // 리스트 셋터
