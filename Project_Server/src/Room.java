@@ -7,6 +7,7 @@ import java.util.List;
 public class Room {
     private List<User> userList;
     private User roomOwner;
+    private User user;
     private String roomName;
     private String passWord = "";
     private int roomNumber;
@@ -14,6 +15,7 @@ public class Room {
     Socket socket;
     BufferedReader in;
     PrintWriter out;
+
     // 깡통
     public Room(int roomNumber) {
         this.roomNumber = roomNumber;
@@ -28,8 +30,13 @@ public class Room {
     }
 
     public void joinUser(User user) {
+        user.joinRoom(this);
         userList.add(user);
     }
+//
+//    public void joinUser(Room room) {
+//        user.joinRoom(room);
+//    }
 
     public void exitRoom(User user) {
         user.exitRoom(this);

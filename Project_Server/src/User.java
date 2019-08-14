@@ -1,5 +1,6 @@
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class User {
     // 유저가 가져야할 정보들은 ?
@@ -20,9 +21,13 @@ public class User {
 
 
     public void joinRoom(Room room) {
-        this.rNumb = room.getRoomNumber();
         this.room = room;
+        this.rNumb = room.getRoomNumber();
     }
+
+//    public void joinRoom(User user) {
+//        room.joinUser(user);
+//    }
 
     public void exitRoom(Room room) {
         this.room = null;
